@@ -1,0 +1,42 @@
+pip install requests
+pip install pyTelegramBotAPI
+import telebot
+import requests
+import json
+
+bot = telebot.TeleBot("6037566514:AAEAdi8ydJSJ2KdA4WLAmCU-VLssrqJUaYw")
+API="a112f7a949d7bbdc5922ce7793cdd3b4"
+
+
+@bot.message_handler(commands=["start"])
+def start(message):
+    bot.send_message(message.chat.id, f"Привет, {message.from_user.first_name}! Рад тебя видеть❤️ Напиши название города.")
+    try:    
+        @bot.message_handler(content_types=[str("text")])
+        def get_weather(message):  
+            city=str(message.text.strip().lower())
+            res=requests.get(f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={API}&units=metric")
+            data=json.loads(res.text)
+            temp = data["main"]["temp"]
+            bot.reply_to(message, f'Сейчас погода: {temp}. Ощущается как {data["main"]["feels_like"]} ')
+            if temp <10:
+                bot.send_photo(message.chat.id, "https://is2-ssl.mzstatic.com/image/thumb/Purple111/v4/ec/8e/ca/ec8ecaad-745c-65da-c602-f2a0ea9303ae/source/200x200bb.jpg")
+                bot.send_message(message.chat.id, f"Очень холодно. Оденься потоеплее")
+            elif temp <20:
+                bot.send_photo(message.chat.id, "https://i.pinimg.com/originals/9e/76/44/9e76440e228671d77b9afc06887fab3c.png")
+                bot.send_message(message.chat.id, f"Очень тепло. Рекомендую одеться посвободнее")
+            elif temp >20:
+                bot.send_photo(message.chat.id, "https://yt3.ggpht.com/ytc/AMLnZu8w3-puJkCPi-Cbz9z6i0lLdkBRXDUAqBnMKJok=s900-c-k-c0x00ffffff-no-rj")
+                bot.send_message(message.chat.id, f"Очень жарко. Можешь раздеваться)")
+
+    except ValueError:
+            bot.send_message(message.chat.id, f"Неверные значения. Попробуй еще раз")
+            bot.register_nest_step_handler(message, start)
+            return
+            
+            
+            
+            
+bot.polling(none_stop=True)
+
+
